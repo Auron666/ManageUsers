@@ -1,10 +1,12 @@
 package ru.home.model;
 
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
+@EqualsAndHashCode
 public class User {
 
     @Id
@@ -23,9 +25,8 @@ public class User {
         super();
     }
 
-    public User(Long id, String firstname, String lastname, String birthday, String login, String password, String about, String address) {
+    public User(String firstname, String lastname, String birthday, String login, String password, String about, String address) {
         super();
-        this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
         this.birthday = birthday;
