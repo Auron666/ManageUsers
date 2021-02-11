@@ -1,69 +1,60 @@
 package ru.home.view;
 
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import ru.home.model.User;
 import ru.home.respository.UserRepository;
+
+
 
 @Route(value = "index")
 @Slf4j
 public class MainView extends VerticalLayout {
 
     private final UserRepository userRepository;
-    private final Button addNewUserButton;
-    private final TextField filter;
+    private final Grid<User> grid;
+    private final TextField filterField = new TextField();
 
-    private final UserEditor userEditor;
+    private final FormAddView formAddView = new FormAddView(this);
 
-    final Grid<User> grid;
-
-    public MainView(UserRepository repository, UserEditor userEditor) {
-
-        this.userRepository = repository;
+    public MainView(UserRepository userRepository){
+        this.userRepository = userRepository;
         this.grid = new Grid<>(User.class);
-        this.filter = new TextField();
-        this.userEditor = userEditor;
 
-        this.addNewUserButton = new Button("New user", VaadinIcon.PLUS.create());
+        HorizontalLayout mainContent = new HorizontalLayout(grid, formAddView);
+        mainContent.setSizeFull();
+        setSizeFull();
 
-        HorizontalLayout actions = new HorizontalLayout(filter, addNewUserButton);
-        add(actions, grid, userEditor);
+        add(grid, filterField, mainContent);
 
-        grid.setHeight("500px");
+        createGrid();
+        getAllList();
+        filteredText();
+    }
+
+    void createGrid(){
         grid.setColumns("id", "firstname", "lastname", "birthday", "login", "about", "address");
         grid.getColumnByKey("id").setWidth("50px").setFlexGrow(0);
-
-        filter.setPlaceholder("Filter by first name");
-        filter.setValueChangeMode(ValueChangeMode.EAGER);
-
-        grid.asSingleSelect().addValueChangeListener(e -> {
-            userEditor.editUser(e.getValue());
-        });
-
-        addNewUserButton.addClickListener(e -> userEditor.editUser(new User("", "", "", "", "", "", "")));
-
-        userEditor.setChangeHandler(() -> {
-            userEditor.setVisible(false);
-            listUsers(filter.getValue());
-        });
-
-        listUsers(null);
     }
 
-    void listUsers(String filterText) {
-        if (StringUtils.isEmpty(filterText)) {
-            grid.setItems(userRepository.findAll());
-        } else {
-            grid.setItems(userRepository.findByFirstnameStartsWithIgnoreCase(filterText));
-        }
+    void getAllList(){
+        grid.setItems(userRepository.findAll());
     }
+
+    void filteredText(){
+        filterField.setPlaceholder("Filter by First Name");
+        filterField.setValueChangeMode(ValueChangeMode.EAGER);
+        filterField.addValueChangeListener(e -> getFilteredList());
+    }
+
+    void getFilteredList(){
+        grid.setItems(userRepository.findByFirstnameStartsWithIgnoreCase(filterField.getValue()));
+    }
+
 
 }
